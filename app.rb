@@ -1,4 +1,4 @@
-require_relative 'models'
+require_relative 'lib/models'
 
 require 'roda'
 require 'tilt/sass'
@@ -13,7 +13,7 @@ class App < Roda
 
   plugin :content_security_policy do |csp|
     csp.default_src :none
-    csp.style_src :self, 'https://maxcdn.bootstrapcdn.com'
+    csp.style_src :self
     csp.form_action :self
     csp.script_src :self
     csp.connect_src :self
@@ -29,14 +29,15 @@ class App < Roda
     :same_site=>:lax, # or :strict if you want to disallow linking into the site
     secret: (session_secret || SecureRandom.hex(40))
 
+  plugin :static, ["/assets"], root: "public"
   plugin :route_csrf
   plugin :flash
-  plugin :assets, css: 'app.scss', css_opts: {style: :compressed, cache: false}, timestamp_paths: true
-  plugin :render, escape: true
+  plugin :render, escape: true,
+                  views: File.expand_path("web/views", __dir__)
   plugin :public
   plugin :multi_route
 
-  Unreloader.require('routes'){}
+  Unreloader.require('web/routes'){}
 
   route do |r|
     r.public

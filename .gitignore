@@ -1,1 +1,9 @@
 /.env.rb
+.bundle/*
+tmp/
+
+# NPM packages folder.
+node_modules/
+
+# Brunch output folder.
+public/

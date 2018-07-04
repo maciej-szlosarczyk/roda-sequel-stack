@@ -1,0 +1,22 @@
+{
+  "name": "App",
+  "description": "Rack + Roda + Sequel + Brunch application",
+  "private": true,
+  "author": "Maciej Szlosarczyk <maciej@sosek.net>",
+  "version": "0.0.1",
+  "repository": "",
+  "dependencies": {
+    "debug": "^3.1.0",
+    "highlight.js": "^9.12.0"
+  },
+  "devDependencies": {
+    "auto-reload-brunch": "^2",
+    "brunch": "^2",
+    "bulma": "^0.7.1",
+    "highlight.js": "9.12.0",
+    "clean-css-brunch": "^2",
+    "commander": "^2.15.1",
+    "sass-brunch": "^2.10.4",
+    "uglify-js-brunch": "^2"
+  }
+}

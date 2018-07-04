@@ -1,0 +1,15 @@
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: when_needed
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Metrics/LineLength:
+  Max: 80
+
+Style/Documentation:
+  Exclude:
+    - test/**/*

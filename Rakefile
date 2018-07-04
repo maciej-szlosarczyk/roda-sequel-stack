@@ -1,102 +1,116 @@
-# Migrate
+require "rake/testtask"
 
+# Migrate
 migrate = lambda do |env, version|
-  ENV['RACK_ENV'] = env
-  require_relative 'db'
-  require 'logger'
+  ENV["RACK_ENV"] = env
+  require_relative "lib/db"
+  require "logger"
   Sequel.extension :migration
   DB.loggers << Logger.new($stdout)
-  Sequel::Migrator.apply(DB, 'migrate', version)
+  Sequel::Migrator.apply(DB, "migrate", version)
 end
 
-desc "Migrate test database to latest version"
-task :test_up do
-  migrate.call('test', nil)
-end
+# Migrations
+# rubocop:disable BlockLength
+namespace :db do
+  namespace :dev do
+    desc "Migrate development database all the way down"
+    task :down do
+      migrate.call("development", 0)
+    end
 
-desc "Migrate test database all the way down"
-task :test_down do
-  migrate.call('test', 0)
-end
+    desc "Migrate development database all the way up"
+    task :up do
+      migrate.call("development", nil)
+    end
 
-desc "Migrate test database all the way down and then back up"
-task :test_bounce do
-  migrate.call('test', 0)
-  Sequel::Migrator.apply(DB, 'migrate')
-end
+    desc "Migrate development database down, and then up"
+    task :bounce do
+      migrate.call("development", 0)
+      Sequel::Migrator.apply(DB, "migrate")
+    end
+  end
 
-desc "Migrate development database to latest version"
-task :dev_up do
-  migrate.call('development', nil)
-end
+  namespace :test do
+    desc "Migrate test database all the way down"
+    task :down do
+      migrate.call("test", 0)
+    end
 
-desc "Migrate development database to all the way down"
-task :dev_down do
-  migrate.call('development', 0)
-end
+    desc "Migrate test database all the way up"
+    task :up do
+      migrate.call("test", nil)
+    end
 
-desc "Migrate development database all the way down and then back up"
-task :dev_bounce do
-  migrate.call('development', 0)
-  Sequel::Migrator.apply(DB, 'migrate')
-end
+    desc "Migrate test database down, and then up"
+    task :bounce do
+      migrate.call("test", 0)
+      Sequel::Migrator.apply(DB, "migrate")
+    end
+  end
 
-desc "Migrate production database to latest version"
-task :prod_up do
-  migrate.call('production', nil)
+  desc "Apply migrations in production database"
+  task :prod do
+    migrate.call("production", nil)
+  end
 end
+# rubocop:enable BlockLength
 
 # Shell
+pry = proc do |env|
+  ENV["RACK_ENV"] = env
+  cmd = "pry"
+  sh "#{cmd} -r ./lib/models"
+end
 
-irb = proc do |env|
-  ENV['RACK_ENV'] = env
-  trap('INT', "IGNORE")
-  dir, base = File.split(FileUtils::RUBY)
-  cmd = if base.sub!(/\Aruby/, 'irb')
-    File.join(dir, base)
-  else
-    "#{FileUtils::RUBY} -S irb"
+namespace :pry do
+  desc "Open pry in dev environment"
+  task :dev do
+    pry.call("dev")
   end
-  sh "#{cmd} -r ./models"
+
+  desc "Open pry in test environment"
+  task :test do
+    pry.call("test")
+  end
+
+  desc "Open pry in production environment"
+  task :production do
+    pry.call("production")
+  end
 end
 
-desc "Open irb shell in test mode"
-task :test_irb do 
-  irb.call('test')
+desc "Open pry in dev environment"
+task pry: "pry:dev"
+
+# Tests
+namespace :test do
+  Rake::TestTask.new do |t|
+    t.name = "other"
+    t.description = "Run all tests except for Web ones"
+    t.warning = false
+    file_list = FileList.new("test/**/*_test.rb").exclude("test/web/*_test.rb")
+    t.test_files = file_list
+  end
+
+  Rake::TestTask.new do |t|
+    t.name = "web"
+    t.description = "Run only Web tests"
+    t.warning = false
+    t.test_files = FileList["test/web/*_test.rb"]
+  end
+
+  Rake::TestTask.new do |t|
+    t.name = "all"
+    t.warning = false
+    t.test_files = FileList["test/**/*_test.rb"]
+  end
 end
 
-desc "Open irb shell in development mode"
-task :dev_irb do 
-  irb.call('development')
-end
+desc "Run all tests"
+task test: "test:all"
 
-desc "Open irb shell in production mode"
-task :prod_irb do 
-  irb.call('production')
-end
-
-# Specs
-
-spec = proc do |pattern|
-  sh "#{FileUtils::RUBY} -e 'ARGV.each{|f| require f}' #{pattern}"
-end
-
-desc "Run all specs"
-task default: [:model_spec, :web_spec]
-
-desc "Run model specs"
-task :model_spec do
-  spec.call('./spec/model/*_spec.rb')
-end
-
-desc "Run web specs"
-task :web_spec do
-  spec.call('./spec/web/*_spec.rb')
-end
-
-last_line = __LINE__
 # Utils
-
 desc "give the application an appropriate name"
 task :setup, [:name] do |t, args|
   unless name = args[:name]
@@ -124,7 +138,8 @@ else
 end
 END
 
-  %w'views/layout.erb routes/prefix1.rb config.ru app.rb db.rb spec/web/spec_helper.rb'.each do |f|
+  %w'web/views/layout.erb web/routes/prefix1.rb config.ru app.rb db.rb
+     test/minitest_helper.rb test/web/test_helper.rb package.json'.each do |f|
     File.write(f, File.read(f).gsub('App', name).gsub('APP', upper_name))
   end
 

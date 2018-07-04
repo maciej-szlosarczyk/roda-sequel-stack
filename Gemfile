@@ -1,13 +1,40 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-gem 'sass', '>= 3'
-gem 'tilt', '>= 2.0.6'
-gem 'erubi', '>= 1.5'
-gem 'roda', '>= 3.9'
-gem 'sequel', '>= 5'
-gem 'sequel_pg', '>= 1.8'
-gem 'rack-unreloader'
+source "https://rubygems.org"
 
-gem 'capybara'
-gem 'minitest', '>= 5.7.0'
-gem 'minitest-hooks', '>= 1.1.0'
+gem "bcrypt"
+gem "dry-validation"
+gem "erubi"
+gem "puma"
+gem "rack-unreloader"
+gem "rack_csrf"
+gem "roda"
+gem "rodauth"
+gem "sass"
+gem "sequel"
+gem "sequel_pg"
+gem "tilt"
+
+group :development do
+  # Required by robe
+  gem "pry"
+  gem "pry-doc"
+end
+
+group :test, :ci do
+  gem "capybara"
+  gem "capybara-webkit"
+  gem "fixture_dependencies"
+  gem "minitest"
+  gem "minitest-hooks"
+  gem "minitest-reporters"
+  gem "selenium-webdriver"
+  gem "simplecov"
+  gem "simplecov-console"
+  gem "timecop"
+end
+
+group :ci do
+  gem "reek"
+  gem "rubocop"
+end
