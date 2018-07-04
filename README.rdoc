@@ -70,4 +70,4 @@ RACK_ENV :: environment to use (production, development, or test), defaults
 
 == Author
 
-Jeremy Evans <code@jeremyevans.net>
+Jeremy Evans <code@jeremyevans.net>, later adjusted by Maciej Szlosarczyk <maciej@sosek.net>
